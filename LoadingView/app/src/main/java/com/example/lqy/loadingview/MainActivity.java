@@ -86,7 +86,9 @@ public class MainActivity extends AppCompatActivity {
         }else if(id == R.id.action_status){
             if(lv.getmStyle() == 1){
                 lv.setmStyle(LoadingView.POINT);
-            }else {
+            }else if(lv.getmStyle() == 0){
+                lv.setmStyle(LoadingView.STRIP);
+            }else{
                 lv.setmStyle(LoadingView.CIRCLE);
             }
             return true;

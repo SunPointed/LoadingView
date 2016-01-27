@@ -18,10 +18,15 @@ public class LoadingView extends View {
 
     public static final int POINT = 0;
     public static final int CIRCLE = 1;
+    public static final int STRIP = 2;
 
     public static final int MIN_NUM = 6;
     public static final int MAX_NUM = 16;
     public static final int DEFAULT_NUM = 8;
+
+    public static final int MIN_STRIP_NUM = 50;
+    public static final int MAX_STRIP_NUM = 200;
+    public static final int DEFAULT_STRIP_NUM = 120;
 
     public static final int MIN_CONNER = 0;
     public static final int MAX_CONNER = 100;
@@ -40,6 +45,8 @@ public class LoadingView extends View {
 
     int mBubleNum = DEFAULT_NUM;
 
+    int mStripNum = DEFAULT_STRIP_NUM;
+
     int mColor = 0xFF888888;
 
     int mBackColor = 0xFFFF00FF;
@@ -50,7 +57,7 @@ public class LoadingView extends View {
 
     int mBackAlpha = 0;
 
-    float mCirleWidth = 5.0f;
+    float mWidth = 5.0f;
 
     float mOriginWidth;
 
@@ -151,17 +158,32 @@ public class LoadingView extends View {
         //draw content
         mPaint.setColor(mColor);
         int alpha = mAlpha;
-        if (mStyle == 1) {
+        if (mStyle == CIRCLE) {
             //circle
-            mPaint.setStrokeWidth(mCirleWidth);
+            mPaint.setStrokeWidth(mWidth);
             float startAngle = 0.0f;
-            float sweepAngle = 360.0f/255.0f;
+            float sweepAngle = 360.0f / 255.0f;
             mPaint.setStyle(Paint.Style.STROKE);
             for (int i = 0; i < 360; ++i) {
                 mPaint.setAlpha(alpha);
                 canvas.drawArc(mCircleRectF, startAngle, sweepAngle, false, mPaint);
                 startAngle += sweepAngle;
                 alpha -= 1;
+            }
+        } else if (mStyle == STRIP) {
+            float width = mWidth * 10;
+            if(width > 100){
+                width = 100;
+            }
+            mPaint.setStrokeWidth(width);
+            float startAngle = 0.0f;
+            float sweepAngle = 330.0f / mStripNum;
+            mPaint.setStyle(Paint.Style.STROKE);
+            for (int i = 0; i < mStripNum; ++i) {
+                mPaint.setAlpha(alpha);
+                canvas.drawArc(mCircleRectF, startAngle, sweepAngle, false, mPaint);
+                startAngle += 360.0f / mStripNum;
+                alpha -= (255.0f / mStripNum);
             }
         } else {
             //point
@@ -287,11 +309,24 @@ public class LoadingView extends View {
         this.mStyle = mStyle;
     }
 
-    public void setCircleWidth(float width){
-        mCirleWidth = width;
+    public void setCircleWidth(float width) {
+        mWidth = width;
     }
 
-    public float getCircleWidth(){
-        return  mCirleWidth;
+    public float getCircleWidth() {
+        return mWidth;
+    }
+
+    public int getmStripNum() {
+        return mStripNum;
+    }
+
+    public void setmStripNum(int mStripNum) {
+        if (mStripNum < MIN_STRIP_NUM) {
+            mStripNum = MIN_STRIP_NUM;
+        } else if (mStripNum > MAX_STRIP_NUM) {
+            mStripNum = MAX_STRIP_NUM;
+        }
+        this.mStripNum = mStripNum;
     }
 }
