@@ -1,0 +1,40 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+    <item
+        android:id="@+id/action_status"
+        android:orderInCategory="100"
+        android:title="形态切换"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_points"
+        android:orderInCategory="100"
+        android:title="点数切换"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_line_width"
+        android:orderInCategory="100"
+        android:title="线宽切换"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_text"
+        android:orderInCategory="100"
+        android:title="Text切换"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_back_color"
+        android:orderInCategory="100"
+        android:title="背景颜色切换"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_back_alpha"
+        android:orderInCategory="100"
+        android:title="背景透明度切换"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_color"
+        android:orderInCategory="100"
+        android:title="颜色切换"
+        app:showAsAction="never" />
+</menu>
