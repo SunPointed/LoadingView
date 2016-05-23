@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="LoadingButton">
+        <attr name="text_color" format="color"/>
+        <attr name="backgound_color" format="color"/>
+        <attr name="progress_color" format="color"/>
+        <attr name="button_color" format="color"/>
+        <attr name="corner" format="dimension"/>
+        <attr name="disappear_type" format="dimension"/>
+        <attr name="total_change_time" format="dimension"/>
+        <attr name="time_schedule" format="dimension"/>
+    </declare-styleable>
+</resources>
