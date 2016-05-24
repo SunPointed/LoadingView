@@ -9,16 +9,22 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class MainActivity extends AppCompatActivity {
 
     LoadingView lv;
+    LoadingButton lb;
+
+    Timer timer;
+
+    int percent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        lv = (LoadingView) findViewById(R.id.lv);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -31,6 +37,30 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        lv = (LoadingView) findViewById(R.id.lv);
+        lb = (LoadingButton) findViewById(R.id.lb_h);
+
+        lb.setClickListener(new LoadingButton.ClickListener() {
+            @Override
+            public void click() {
+                timer = new Timer();
+                percent = 0;
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        lb.setPercent(percent);
+                        percent += 1;
+                        if(percent > 100){
+                            timer.cancel();
+                            timer = null;
+                            lb.finishLoading();
+                        }
+                    }
+                }, 0, 100);
+            }
+        });
+
     }
 
     @Override

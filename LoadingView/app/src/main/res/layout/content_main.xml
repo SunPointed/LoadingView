@@ -10,7 +10,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".MainActivity"
-    android:gravity="center"
     tools:showIn="@layout/activity_main">
 
     <TextView
@@ -23,16 +22,26 @@
     <com.example.lqy.loadingview.LoadingView
         android:layout_below="@+id/tv_demo"
         android:id="@+id/lv"
-        android:layout_width="100dp"
-        android:layout_height="100dp" />
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginBottom="5dp"/>
 
     <com.example.lqy.loadingview.LoadingButton
+        android:id="@+id/lb_h"
         android:layout_below="@+id/lv"
         android:layout_width="match_parent"
         android:layout_height="100dp"
         app:corner="10dp"
         app:text="confirm"
         app:text_color="#ff0000"
-        app:text_size="20sp"/>
+        app:text_size="20sp"
+        app:is_progress="true"
+        android:layout_marginBottom="5dp"/>
+
+    <com.example.lqy.loadingview.LoadingButton
+        android:id="@+id/lb_v"
+        android:layout_below="@+id/lb_h"
+        android:layout_width="100dp"
+        android:layout_height="200dp" />
 
 </RelativeLayout>

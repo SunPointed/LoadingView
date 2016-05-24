@@ -26,7 +26,7 @@ public class LoadingButton extends View implements View.OnClickListener{
     public static final int ZOOM_IN = 4;
     public static final int ZOOM_OUT = 5;
 
-    private String mText = "submit";
+    private String mText;
     private int mTextSize;
 
     private int mWidth;
@@ -34,6 +34,7 @@ public class LoadingButton extends View implements View.OnClickListener{
     private int mProgressWidth = 0;
     private int mWaitWidth;
     private RectF mBackRect;
+    private RectF mProgressRect;
 
     private int mTextColor;
     private int mButtonColor;
@@ -53,33 +54,40 @@ public class LoadingButton extends View implements View.OnClickListener{
 
     private boolean mIsLoading;
     private boolean mIsProgress;
+    private boolean mIsDisappear;
 
     private int mTotalChangeTime;
     private int mTimeSchedule;
+
+    private ClickListener mListener;
 
     public LoadingButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.LoadingButton);
         mTextColor = typedArray.getColor(R.styleable.LoadingButton_text_color, 0xFFFFFFFF);
-        mBackColor = typedArray.getColor(R.styleable.LoadingButton_backgound_color, 0xFF333333);
-        mProgressColor = typedArray.getColor(R.styleable.LoadingButton_progress_color, 0xFFCCCCCC);
+        mBackColor = typedArray.getColor(R.styleable.LoadingButton_backgound_color, 0xFFF5F5F5);
+        mProgressColor = typedArray.getColor(R.styleable.LoadingButton_progress_color, 0xFF333333);
         mCorner = typedArray.getDimensionPixelSize(R.styleable.LoadingButton_corner, 30);
         mDisappearType = typedArray.getDimensionPixelOffset(R.styleable.LoadingButton_disappear_type, ZOOM_IN);
-        mButtonColor = typedArray.getColor(R.styleable.LoadingButton_button_color, 0xFFFFFF00);
+        mButtonColor = typedArray.getColor(R.styleable.LoadingButton_button_color, 0xFFB6B6B6);
         mTotalChangeTime = typedArray.getDimensionPixelSize(R.styleable.LoadingButton_total_change_time, 500);
         mTimeSchedule = typedArray.getDimensionPixelSize(R.styleable.LoadingButton_time_schedule, 20);
         mText = typedArray.getString(R.styleable.LoadingButton_text);
         mTextSize = typedArray.getDimensionPixelSize(R.styleable.LoadingButton_text_size, 60);
+        mIsProgress = typedArray.getBoolean(R.styleable.LoadingButton_is_progress, false);
         typedArray.recycle();
 
-        Log.i(TAG, "mCorner:" + mCorner);
-        Log.i(TAG, "mTextSize:" + mTextSize);
+        if(mText == null){
+            mText = "submit";
+        }
 
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mBackRect = new RectF();
+        mProgressRect = new RectF();
         mAlpha = 255;
         mIsLoading = false;
-        mIsProgress = true;
+        mIsDisappear = false;
         this.setOnClickListener(this);
     }
 
@@ -94,9 +102,21 @@ public class LoadingButton extends View implements View.OnClickListener{
     @Override
     protected void onDraw(Canvas canvas) {
 
-        mPaint.setColor(mBackColor);
+        mPaint.setColor(mButtonColor);
         canvas.drawRoundRect(mBackRect, mCorner, mCorner, mPaint);
 
+        if(mIsDisappear){
+            drawDisappear(canvas);
+        }
+
+        if(mIsLoading){
+            drawLoading(canvas);
+        } else {
+            drawText(canvas);
+        }
+    }
+
+    private void drawDisappear(Canvas canvas){
         if(mDisappearType == ZOOM_IN){
 
         } else if(mDisappearType == ZOOM_OUT){
@@ -110,12 +130,6 @@ public class LoadingButton extends View implements View.OnClickListener{
         } else if(mDisappearType == RIGHT){
 
         }
-
-        if(mIsLoading){
-            drawLoading(canvas);
-        } else {
-            drawText(canvas);
-        }
     }
 
     private void drawText(Canvas canvas){
@@ -123,13 +137,18 @@ public class LoadingButton extends View implements View.OnClickListener{
         mPaint.setAlpha(255);
         mPaint.setTextSize(mTextSize);
         mPaint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText(mText, mWidth/2, mHeight/7*4, mPaint);
+        canvas.drawText(mText, mWidth / 2, mHeight / 7 * 4, mPaint);
     }
 
     private void drawLoading(Canvas canvas){
         if(mIsProgress){
-
+            mPaint.setColor(mBackColor);
+            canvas.drawRoundRect(mBackRect, mCorner, mCorner, mPaint);
+            mPaint.setColor(mButtonColor);
+            mProgressRect.set(0, 0, mProgressWidth, mHeight);
+            canvas.drawRoundRect(mProgressRect, mCorner, mCorner, mPaint);
         }
+
         int alpha = mAlpha;
         float angle = 360f / 12;
         mPaint.setColor(mProgressColor);
@@ -137,7 +156,7 @@ public class LoadingButton extends View implements View.OnClickListener{
             mPaint.setAlpha(alpha);
             canvas.rotate(angle, mWidth/2, mHeight/2);
             if(mWaitWidth == mWidth) {
-                canvas.drawRect(mHeight / 2 - mWaitWidth / 18, mWaitWidth / 15, mHeight / 2 + mWaitWidth / 18, mWaitWidth / 4, mPaint);
+                canvas.drawRect(mWidth / 2 - mWaitWidth / 18, mHeight/2 - mWidth/2, mWidth / 2 + mWaitWidth / 18, mHeight/2 - mWidth/4, mPaint);
             } else {
                 canvas.drawRect(mWidth / 2 - mWaitWidth / 18, mWaitWidth / 15, mWidth / 2 + mWaitWidth / 18, mWaitWidth / 4, mPaint);
             }
@@ -154,11 +173,20 @@ public class LoadingButton extends View implements View.OnClickListener{
         mWidth = getMeasuredWidth();
         mHeight = getMeasuredHeight();
         mWaitWidth = mWidth < mHeight ? mWidth : mHeight;
-        mBackRect = new RectF(0, 0, mWidth, mHeight);
+        mBackRect.set(0, 0, mWidth, mHeight);
     }
 
     @Override
     public void onClick(View v) {
+        if(mDisappearTimer != null){
+            return;
+        }
+
+        if(mListener != null){
+            mListener.click();
+        }
+
+        mIsDisappear = true;
         mDisappearTimer = new Timer();
         mDisappearTime = 0;
 
@@ -174,15 +202,17 @@ public class LoadingButton extends View implements View.OnClickListener{
                 }
                 postInvalidate();
             }
-        }, 0, 150);
+        }, mTotalChangeTime, 150);
 
         mDisappearTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if(mDisappearTime >= mTotalChangeTime){
+                if (mDisappearTime >= mTotalChangeTime) {
                     mDisappearTimer.cancel();
                     mDisappearTimer = null;
                     mIsLoading = true;
+                    mIsDisappear = false;
+                    System.gc();
                 } else {
                     mDisappearTime += mTimeSchedule;
                 }
@@ -191,8 +221,18 @@ public class LoadingButton extends View implements View.OnClickListener{
         }, 0, mTimeSchedule);
     }
 
-    public void setProgressWidth(int progressWidth){
-        this.mProgressWidth = progressWidth;
+    public void finishLoading(){
+        if(mLoadingTimer != null) {
+            mLoadingTimer.cancel();
+            mLoadingTimer = null;
+            mIsLoading = false;
+            System.gc();
+            postInvalidate();
+        }
+    }
+
+    public void setPercent(float percent){
+        this.mProgressWidth = (int) (mWidth * percent / 100f);
     }
 
     public void setBackColor(int backgroundColor) {
@@ -225,5 +265,13 @@ public class LoadingButton extends View implements View.OnClickListener{
 
     public void setTextSize(int textSize){
         this.mTextSize = textSize;
+    }
+
+    public void setClickListener(ClickListener listener){
+        this.mListener = listener;
+    }
+
+    public interface ClickListener{
+        void click();
     }
 }

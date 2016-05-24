@@ -11,5 +11,6 @@
         <attr name="time_schedule" format="dimension"/>
         <attr name="text_size" format="dimension"/>
         <attr name="text" format="string"/>
+        <attr name="is_progress" format="boolean"/>
     </declare-styleable>
 </resources>
