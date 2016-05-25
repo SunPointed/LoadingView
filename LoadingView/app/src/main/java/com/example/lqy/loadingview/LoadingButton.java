@@ -19,20 +19,26 @@ public class LoadingButton extends View implements View.OnClickListener{
 
     public static final String TAG = "LoadingButton";
 
-    public static final int UP = 0;
-    public static final int DOWN = 1;
-    public static final int LEFT = 2;
-    public static final int RIGHT = 3;
-    public static final int ZOOM_IN = 4;
-    public static final int ZOOM_OUT = 5;
+    public static final String UP = "UP";
+    public static final String DOWN = "DOWN";
+    public static final String LEFT = "LEFT";
+    public static final String RIGHT = "RIGHT";
+    public static final String ZOOM_IN = "ZOOM_IN";
+    public static final String ZOOM_OUT = "ZOOM_OUT";
 
     private String mText;
     private int mTextSize;
+    private int mTextSizeTemp;
+    private int mTextBaseLine;
 
     private int mWidth;
     private int mHeight;
     private int mProgressWidth = 0;
     private int mWaitWidth;
+
+    private int mTop = 0;
+    private int mLeft = 0;
+
     private RectF mBackRect;
     private RectF mProgressRect;
 
@@ -43,8 +49,9 @@ public class LoadingButton extends View implements View.OnClickListener{
 
     private int mCorner;
 
-    private int mDisappearType;
+    private String mDisappearType;
     private int mDisappearTime;
+    private int mDisappearCount;
     private Timer mDisappearTimer;
 
     private Timer mLoadingTimer;
@@ -69,17 +76,23 @@ public class LoadingButton extends View implements View.OnClickListener{
         mBackColor = typedArray.getColor(R.styleable.LoadingButton_backgound_color, 0xFFF5F5F5);
         mProgressColor = typedArray.getColor(R.styleable.LoadingButton_progress_color, 0xFF333333);
         mCorner = typedArray.getDimensionPixelSize(R.styleable.LoadingButton_corner, 30);
-        mDisappearType = typedArray.getDimensionPixelOffset(R.styleable.LoadingButton_disappear_type, ZOOM_IN);
+        mDisappearType = typedArray.getString(R.styleable.LoadingButton_disappear_type);
         mButtonColor = typedArray.getColor(R.styleable.LoadingButton_button_color, 0xFFB6B6B6);
-        mTotalChangeTime = typedArray.getDimensionPixelSize(R.styleable.LoadingButton_total_change_time, 500);
+        mTotalChangeTime = typedArray.getDimensionPixelSize(R.styleable.LoadingButton_total_change_time, 200);
         mTimeSchedule = typedArray.getDimensionPixelSize(R.styleable.LoadingButton_time_schedule, 20);
+        mDisappearCount = mTotalChangeTime/mTimeSchedule;
         mText = typedArray.getString(R.styleable.LoadingButton_text);
         mTextSize = typedArray.getDimensionPixelSize(R.styleable.LoadingButton_text_size, 60);
+        mTextSizeTemp = mTextSize;
         mIsProgress = typedArray.getBoolean(R.styleable.LoadingButton_is_progress, false);
         typedArray.recycle();
 
         if(mText == null){
             mText = "submit";
+        }
+
+        if(mDisappearType == null){
+            mDisappearType = UP;
         }
 
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -102,12 +115,13 @@ public class LoadingButton extends View implements View.OnClickListener{
     @Override
     protected void onDraw(Canvas canvas) {
 
-        mPaint.setColor(mButtonColor);
-        canvas.drawRoundRect(mBackRect, mCorner, mCorner, mPaint);
-
         if(mIsDisappear){
             drawDisappear(canvas);
         }
+
+        mPaint.setColor(mButtonColor);
+        mBackRect.set(mLeft, mTop, mLeft + mWidth, mTop + mHeight);
+        canvas.drawRoundRect(mBackRect, mCorner, mCorner, mPaint);
 
         if(mIsLoading){
             drawLoading(canvas);
@@ -117,18 +131,19 @@ public class LoadingButton extends View implements View.OnClickListener{
     }
 
     private void drawDisappear(Canvas canvas){
-        if(mDisappearType == ZOOM_IN){
-
-        } else if(mDisappearType == ZOOM_OUT){
-
-        } else if(mDisappearType == UP){
-
-        } else if(mDisappearType == DOWN){
-
-        } else if(mDisappearType == LEFT){
-
-        } else if(mDisappearType == RIGHT){
-
+        if(ZOOM_IN.equals(mDisappearType)){
+            mTextSize -= 5;
+        } else if(ZOOM_OUT.equals(mDisappearType)){
+            mTextSize += 20;
+            mTextBaseLine += 5;
+        } else if(UP.equals(mDisappearType)){
+            mTop -= mHeight/mDisappearCount;
+        } else if(DOWN.equals(mDisappearType)){
+            mTop += mHeight/mDisappearCount;
+        } else if(LEFT.equals(mDisappearType)){
+            mLeft -= mWidth/mDisappearCount;
+        } else if(RIGHT.equals(mDisappearType)){
+            mLeft += mWidth/mDisappearCount;
         }
     }
 
@@ -137,7 +152,7 @@ public class LoadingButton extends View implements View.OnClickListener{
         mPaint.setAlpha(255);
         mPaint.setTextSize(mTextSize);
         mPaint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText(mText, mWidth / 2, mHeight / 7 * 4, mPaint);
+        canvas.drawText(mText, mLeft + mWidth / 2, mTop + mTextBaseLine, mPaint);
     }
 
     private void drawLoading(Canvas canvas){
@@ -173,12 +188,12 @@ public class LoadingButton extends View implements View.OnClickListener{
         mWidth = getMeasuredWidth();
         mHeight = getMeasuredHeight();
         mWaitWidth = mWidth < mHeight ? mWidth : mHeight;
-        mBackRect.set(0, 0, mWidth, mHeight);
+        mTextBaseLine = mHeight / 7 * 4;
     }
 
     @Override
     public void onClick(View v) {
-        if(mDisappearTimer != null){
+        if(mLoadingTimer != null){
             return;
         }
 
@@ -193,26 +208,34 @@ public class LoadingButton extends View implements View.OnClickListener{
         mLoadingTimer = new Timer();
         mAlpha = 255;
 
-        mLoadingTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                mAlpha -= 255 / 12;
-                if(mAlpha < 0){
-                    mAlpha = 255;
-                }
-                postInvalidate();
-            }
-        }, mTotalChangeTime, 150);
-
         mDisappearTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 if (mDisappearTime >= mTotalChangeTime) {
                     mDisappearTimer.cancel();
                     mDisappearTimer = null;
+
                     mIsLoading = true;
                     mIsDisappear = false;
+
+                    mTextSize = mTextSizeTemp;
+                    mTextBaseLine = mHeight / 7 * 4;
+                    mTop = 0;
+                    mLeft = 0;
+
+                    mLoadingTimer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            mAlpha -= 255 / 12;
+                            if(mAlpha < 0){
+                                mAlpha = 255;
+                            }
+                            postInvalidate();
+                        }
+                    }, mTotalChangeTime, 150);
+
                     System.gc();
+
                 } else {
                     mDisappearTime += mTimeSchedule;
                 }
@@ -243,7 +266,7 @@ public class LoadingButton extends View implements View.OnClickListener{
         this.mCorner = corner;
     }
 
-    public void setDisappearType(int disappearType) {
+    public void setDisappearType(String disappearType) {
         this.mDisappearType = disappearType;
     }
 
@@ -264,6 +287,7 @@ public class LoadingButton extends View implements View.OnClickListener{
     }
 
     public void setTextSize(int textSize){
+        this.mTextSizeTemp = textSize;
         this.mTextSize = textSize;
     }
 
